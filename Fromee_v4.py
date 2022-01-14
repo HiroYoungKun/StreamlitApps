@@ -438,3 +438,7 @@ else:
             mi.vis_silence()
         if add_selectbox == "問いかけの種類と回数":
             mi.Q_category()
+            
+            
+            
+    # ああああ
