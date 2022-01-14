@@ -111,7 +111,7 @@ class micro_servis():
             sentence_list.append(sentence)
             
         words =  " ".join(word_list)
-        wordcloud = WordCloud(background_color = "white",font_path = 'C:/Users/horimotok/.matplotlib/ipaexg.ttf',width = 800,height = 600).generate(words)
+        wordcloud = WordCloud(background_color = "white",font_path = 'https://github.com/HiroYoungKun/StreamlitApps/blob/main/ipaexg.ttf',width = 800,height = 600).generate(words)
         wordcloud.to_file("{:}.png".format(self.file_name))
 
         st.write('### 会議全体のダイジェスト')
