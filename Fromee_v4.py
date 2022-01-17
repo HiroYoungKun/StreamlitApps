@@ -475,7 +475,7 @@ if os.path.isfile("test.csv") == False:
         writer = csv.writer(f)
         writer.writerow(['満足度', '会議の種類', '予定時間'])
 
-df1 = pd.read_csv("test.csv")
+df1 = pd.read_csv("test.csv",encording="utf-8")
 # df1 = pd.DataFrame()
 satis = st.radio(
     "この会議の満足度は？",
@@ -497,7 +497,7 @@ type = st.selectbox(
 if st.button('確定'):
     df2 = pd.DataFrame({"満足度" : [satis],"予定時間" : [settime],"会議の種類" : [type]},)
     dfmain = pd.concat([df1,df2])
-    dfmain.to_csv(("test.csv"),index=False)
+    dfmain.to_csv(("test.csv",encording="utf-8"),index=False)
 else:
     st.write('確定ボタンを押してください')
 
