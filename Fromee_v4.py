@@ -22,6 +22,9 @@ from datetime import timedelta
 import seaborn as sns
 sns.set()
 plt.rcParams['font.family'] = "MS Gothic"
+import csv
+import os
+
 
 
 class micro_servis():
@@ -342,6 +345,72 @@ class micro_servis():
                         height=500)
         st.write(fig)
 
+    def vis_repeat_count(self):
+        df2 = pd.DataFrame({"発言者":self.names, "内容":self.talks})
+
+        change = []
+        for num in range(len(df2["発言者"])-1):
+            if df2["発言者"][num+1] != df2["発言者"][num]:
+                change.append(num+1)
+
+        t = Tokenizer()
+
+        for i in range(len(self.talks)):
+            sentence = []
+            for j in t.tokenize(self.talks[i]):
+                token_list = j.part_of_speech.split(",")
+                if token_list[0] == "名詞":
+                    if token_list[1] != "非自立":
+                        sentence.append(j.surface)
+                elif token_list[0] == "動詞":
+                    if token_list[1] == "自立":
+                        sentence.append(j.surface)
+                elif token_list[0] == "形容詞":
+                    sentence.append(j.surface)
+
+            df2["内容"][i] = sentence
+
+
+        uni_names = np.unique(self.names)
+
+        repeater = []
+        for i in change:
+            for j in range(len(df2["内容"][i])):
+                if df2["内容"][i][j] in df2["内容"][i-1]:
+                    repeater.append(df2.loc[i, "発言者"])          
+                    break
+
+        repeatcount = []
+        talker = []
+        talkercount = []
+        
+        for i in range(len(df2["発言者"])):
+            talker.append(df2.loc[i, "発言者"])
+
+        for i in uni_names:
+            repeatcount.append(repeater.count(i))   
+            talkercount.append(talker.count(i)) 
+    
+    
+        # print(repeatcount/talkercount)
+        repeatratio = [x*100 / y for (x, y) in zip(repeatcount, talkercount)]
+
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        ax1.bar(self.df.drop(["time"],axis=1).columns, repeatcount, color = "orange", align="edge", width=-0.3, label='repeat_count') #label='repeat_count'
+        ax2.bar(self.df.drop(["time"],axis=1).columns, repeatratio, align="edge", width=0.3, label='repeat_ratio')
+        ax1.set_ylabel("反復した回数")  #y1軸ラベル
+        ax2.set_ylabel("反復した割合[%]")  #y2軸ラベル
+        plt.tick_params(labelsize=10)
+        ax1.tick_params(labelsize=10)
+        plt.tight_layout()
+        h1, l1 = ax1.get_legend_handles_labels()
+        h2, l2 = ax2.get_legend_handles_labels()
+        ax1.legend(h1 + h2, l1 + l2 ,loc='best')
+        plt.grid(False)
+        st.write('### 各参加者の傾聴回数')
+        st.pyplot(fig)
+
     def Q_category(self):
         # トランスクリプションのデータフレームをコピーしてくる
         df = self.df.copy()
@@ -400,6 +469,37 @@ class micro_servis():
 
 
 st.write('# 会議からあなたの毎日を変える　Fromee')
+
+if os.path.isfile("test.csv") == False:
+    with open('test.csv', 'w', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(['満足度', '会議の種類', '予定時間'])
+
+df1 = pd.read_csv("test.csv",encoding="shift-jis")
+# df1 = pd.DataFrame()
+satis = st.radio(
+    "この会議の満足度は？",
+    ('1', '2', '3', '4', '5')
+    )
+
+
+max_value = 200
+min_value = 0
+
+settime = st.slider("予定していた設定時間（分）",min_value,max_value,30,10)
+
+type = st.selectbox(
+    "会議の種類を選択してください",
+    ('情報共有や周知のための話し合い', 'アイデアを創造したり問題解決をするための話し合い', '役割や利害を調整するための話し合い', '意思決定を行うための話し合い', '勉強会や研修など教育・指導のための話し合い')
+)
+
+
+if st.button('確定'):
+    df2 = pd.DataFrame({"満足度" : [satis],"予定時間" : [settime],"会議の種類" : [type]},)
+    dfmain = pd.concat([df1,df2])
+    dfmain.to_csv(("test.csv"),encoding='shift_jis',index=False)
+else:
+    st.write('確定ボタンを押してください')
 
 # Streamlitによるファイルアップロード機能
 uploaded_file=st.file_uploader("↓Teamsのトランスクリプトファイル（docx）をアップロード↓", type=['docx'])
