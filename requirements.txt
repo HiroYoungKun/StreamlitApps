@@ -4,3 +4,4 @@ wordcloud==1.8.1
 nlplot==1.4.0
 urllib3==1.26.7
 networkx==2.5.1
+requests==2.26.0
