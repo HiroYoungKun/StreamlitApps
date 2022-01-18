@@ -477,6 +477,8 @@ st.write('# 会議からあなたの毎日を変える　Fromee')
 #         writer.writerow(['満足度', '会議の種類', '予定時間'])
 
 df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv")
+with open('https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv') as f:
+    print(f.read())
 # df1 = pd.DataFrame()
 # writer = csv.writer(df1)
 writer.writerow(['満足度', '会議の種類', '予定時間'])
