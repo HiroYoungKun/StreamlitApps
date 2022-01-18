@@ -24,7 +24,9 @@ sns.set()
 plt.rcParams['font.family'] = "MS Gothic"
 import csv
 import os
-
+import urllib.request
+proxy_set = urllib.request.ProxyHandler({'http': 'http://127.0.0.1:17200', 'https': 'https://127.0.0.1:17200'})opener = urllib.request.build_opener(proxy_set)
+urllib.request.install_opener(opener)
 
 
 class micro_servis():
