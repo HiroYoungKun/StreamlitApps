@@ -470,8 +470,8 @@ class micro_servis():
 
 st.write('# 会議からあなたの毎日を変える　Fromee')
 
-if os.path.isfile("test.csv") == False:
-    with open('test.csv', 'w', newline="") as f:
+if os.path.isfile("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv") == False:
+    with open('https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv', 'w', newline="") as f:
         printf("fuck")
         writer = csv.writer(f)
         writer.writerow(['満足度', '会議の種類', '予定時間'])
