@@ -476,8 +476,8 @@ st.write('# 会議からあなたの毎日を変える　Fromee')
 #         writer = csv.writer(f)
 #         writer.writerow(['満足度', '会議の種類', '予定時間'])
 
+# df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv")
 df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv")
-
 print(df1)
 st.write(df1)
 satis = st.radio(
