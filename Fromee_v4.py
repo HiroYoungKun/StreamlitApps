@@ -503,7 +503,7 @@ type = st.selectbox(
 if st.button('確定'):
     df2 = pd.DataFrame({"満足度" : [satis],"予定時間" : [settime],"会議の種類" : [type]},)
     dfmain = pd.concat([df1,df2])
-    dfmain.to_csv(("test.csv"),index=False)
+    dfmain.to_csv(("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv"),index=False)
 else:
     st.write('確定ボタンを押してください')
 
