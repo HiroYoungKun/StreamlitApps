@@ -479,7 +479,7 @@ st.write('# 会議からあなたの毎日を変える　Fromee')
 # df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv")
 df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/Sample-Spreadsheet-10-rows.csv")
 # print(df1)
-st.write(df1)
+# st.write(df1)
 satis = st.radio(
     "この会議の満足度は？",
     ('1', '2', '3', '4', '5')
