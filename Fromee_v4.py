@@ -482,7 +482,7 @@ df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/te
 # df1 = pd.DataFrame()
 # writer = csv.writer(df1)
 # writer.writerow(['満足度', '会議の種類', '予定時間'])
-print(df1)
+printf(df1)
 satis = st.radio(
     "この会議の満足度は？",
     ('1', '2', '3', '4', '5')
