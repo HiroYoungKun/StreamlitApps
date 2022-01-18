@@ -470,11 +470,11 @@ class micro_servis():
 
 st.write('# 会議からあなたの毎日を変える　Fromee')
 
-if os.path.isfile("test.csv") == False:
-    with open('test.csv', 'w', newline="") as f:
-        printf("fuck")
-        writer = csv.writer(f)
-        writer.writerow(['満足度', '会議の種類', '予定時間'])
+# if os.path.isfile("test.csv") == False:
+#     with open('test.csv', 'w', newline="") as f:
+#         printf("fuck")
+#         writer = csv.writer(f)
+#         writer.writerow(['満足度', '会議の種類', '予定時間'])
 
 df1 = pd.read_csv("test.csv")
 # df1 = pd.DataFrame()
