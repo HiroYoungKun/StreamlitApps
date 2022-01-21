@@ -16,7 +16,7 @@ from wordcloud import WordCloud
 import collections
 import plotly.graph_objs as go
 import plotly.offline as offline
-from graphviz import Digraph
+# from graphviz import Digraph
 # offline.init_notebook_mode(connected=False)
 import datetime
 from datetime import timedelta
