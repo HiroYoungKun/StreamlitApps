@@ -16,19 +16,40 @@ from wordcloud import WordCloud
 import collections
 import plotly.graph_objs as go
 import plotly.offline as offline
+from graphviz import Digraph
 # offline.init_notebook_mode(connected=False)
 import datetime
 from datetime import timedelta
 import seaborn as sns
 sns.set()
 plt.rcParams['font.family'] = "MS Gothic"
-import csv
 import os
-import urllib.request
-proxy_set = urllib.request.ProxyHandler({'http': 'http://127.0.0.1:17200', 'https': 'https://127.0.0.1:17200'})
-opener = urllib.request.build_opener(proxy_set)
-urllib.request.install_opener(opener)
+import math
+import csv
 
+def create_graph(df, threshold=0.0001):
+    colorlist = ["red", "green", "blue", "cyan", "magenta", "yellow", "black", "white"]
+    """相関係数行列をグラフに変換する関数"""
+    assert set(df.index) == set(df.columns)
+    r = 3
+    # グラフを作成
+    graph = Digraph(engine='neato',format='png')  # graph = 無向グラフ digraph = 有向グラフ
+    # ノードを追加
+    for i, col in enumerate(df.columns):
+        graph.node(f'"{col}"', label=col, shape="box", pos="{:},{:}!".format(r*math.cos(math.pi*2*(i+1)/len(df.columns)),r*math.sin(math.pi*2*(i+1)/len(df.columns))), color=colorlist[i], fontname='MS Gothic')
+
+    # エッジを追加
+    for i, a in enumerate(df.index):
+        for b in df.columns:
+            if a==b:
+                continue
+            val = df.loc[a, b]
+            # 相関係数の絶対値が threshold 未満の場合はエッジを追加しない
+            if abs(val) < threshold:
+                continue
+            graph.edge(f'"{a}"', f'"{b}"', fontname='MS Gothic', color=colorlist[i], label=f'{val:.2f}', penwidth="{:}".format(4 * (abs(val)/30 - threshold) / (1 - threshold)))
+    
+    return graph
 
 class micro_servis():
     def __init__(self,file):
@@ -269,7 +290,7 @@ class micro_servis():
         name_list = self.df.drop("time",axis=1).columns
         starttime = []
         endtime = []
-        for i in range(len(df["time"])-1):
+        for i in range(len(df["time"])):
             starttime.append(pd.to_datetime(df["time"].str[:12][i]))
             endtime.append(pd.to_datetime(df["time"].str[-12:][i]))
 
@@ -403,7 +424,7 @@ class micro_servis():
         ax1.bar(self.df.drop(["time"],axis=1).columns, repeatcount, color = "orange", align="edge", width=-0.3, label='repeat_count') #label='repeat_count'
         ax2.bar(self.df.drop(["time"],axis=1).columns, repeatratio, align="edge", width=0.3, label='repeat_ratio')
         ax1.set_ylabel("反復した回数")  #y1軸ラベル
-        ax2.set_ylabel("反復した割合[%]")  #y2軸ラベル
+        ax2.set_ylabel("反復した割合(%)")  #y2軸ラベル
         plt.tick_params(labelsize=10)
         ax1.tick_params(labelsize=10)
         plt.tight_layout()
@@ -467,22 +488,117 @@ class micro_servis():
         data = go.Bar(x=list(mydict.keys()), y=list(mydict.values()))
         fig = go.Figure(data)
         st.write(fig)
+    
+    def State_transition_diagram(self,n=0):
+        df = self.df.copy()
+        name_list = list(self.df.drop("time",axis=1).columns)
+        for i in name_list:
+            df.loc[df.loc[df[i]!="0"].index,"発言"] = i
+        states = pd.DataFrame(np.zeros((len(name_list),len(name_list))))
+        states.columns = name_list
+        states.index = name_list
+        df["starttime"] = pd.to_datetime(df["time"].str[:12][:])
+        df["endtime"] = pd.to_datetime(df["time"].str[-12:][:])
+        mu_list = []
+        mu_time = 0
+        for i in range(1,len(df)):
+            mu_time = df["starttime"][i].timestamp()-df["endtime"][i-1].timestamp()
+            mu_list.append(mu_time)
+        mu_list.append(0)
+        df["無言"] = mu_list
+        df["pass_cumsum"] = df["endtime"].astype(np.int64)//10**9-df["starttime"][0].timestamp()
+        df["pass"] = df["pass_cumsum"].copy()
+        group_list = []
+        g_num = 0
+        for i in df["pass"]:
+            group_list.append(g_num)
+            if i>600:
+                df["pass"] -= 600
+                g_num += 1
+
+        df["group"] = group_list
+        for i in range(1,len(df)):
+            if df.loc[i,"無言"]<5:
+                states.loc[df.loc[i-1,"発言"],df.loc[i,"発言"]] += 1
+        i = n
+        states = pd.DataFrame(np.zeros((len(name_list),len(name_list))))
+        states.columns = name_list
+        states.index = name_list
+        ten_minu_df = df[df["group"]==i]
+        ten_minu_df = ten_minu_df.reset_index()
+        for n in range(1,len(ten_minu_df)):
+            if df.loc[n,"無言"]<5:
+                states.loc[ten_minu_df.loc[n-1,"発言"],ten_minu_df.loc[n,"発言"]] += 1
+        graph = create_graph(states.T)
+        graph.render("code/images/graph{:}".format(n))
+        image = Image.open('code/images/graph{:}.png'.format(n))
+        st.image(image)
+
+    def vis_talk_speed(self):
+        df3 = self.df.copy()
+
+        starttime = []
+        endtime = []
+        for i in range(len(df3["time"])):
+            starttime.append(pd.to_datetime(df3["time"].str[:12][i]))
+            endtime.append(pd.to_datetime(df3["time"].str[-12:][i]))
+
+        timedf = pd.DataFrame({"starttime":starttime,"endtime":endtime})
+        
+        diff_time = []
+        for i in range(len(timedf)):
+            diff_time.append(timedf["endtime"][i].timestamp()-timedf["starttime"][i].timestamp())
+        
+        df3["diff"] = diff_time
+        df_drop = df3.drop(["time"], axis = 1)
+        
+        talk_speed = []
+        time = []
+        for i in df_drop.columns[0:-1]:
+            df_kk = df_drop[df_drop[i]!="0"]
+            df_np = np.array(df_kk).reshape(-1)
+            talk_amount = len(df_np)
+
+            diff_sum = 0
+            for j in range(len(df_kk)):
+                df_kk = df_kk.reset_index().drop(["index"], axis = 1)
+                diff_sum = diff_sum + df_kk["diff"][j]
+            time = np.append(time,diff_sum)
+            talk_speed = np.append(talk_speed,talk_amount / diff_sum)
+
+        fig = go.Figure()
+        trace1 = go.Bar(x=df_drop.columns[0:-1], y=np.array(talk_speed))
+        
+        fig.add_trace(trace1)
+        #レイアウトの設定
+        fig.update_layout(title='', 
+                        width=750,
+                        height=500)
+        
+        #軸の設定
+        fig.update_xaxes(title='名前')
+        fig.update_yaxes(title='会話速度 (文字数/秒)')
+        
+
+        st.write('### 各参加者の会話速度')
+        st.write(fig)
         
 
 
-
 st.write('# 会議からあなたの毎日を変える　Fromee')
+if os.path.isfile("test.csv") == False:
 
-# if os.path.isfile("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv") == True:
-#     with open('https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv', 'w', newline="") as f:
-#         printf("fuck")
-#         writer = csv.writer(f)
-#         writer.writerow(['満足度', '会議の種類', '予定時間'])
+    with open('test.csv', 'w', newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(['satisfaction', 'meeting sort', 'expected time'])
 
-# df1 = pd.read_csv("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv")
-# df1 = pd.read_csv("s3://fromee-bucket/SampleCSVFile_2kb.csv")
-# print(df1)
-# st.write(df1)
+df1 = pd.read_csv("test.csv", encoding = "utf-8")
+# if os.path.isfile("test.csv") == False:
+#     test_df = pd.DataFrame({'満足度':[0], '会議の種類':[0], '予定時間':[0]})
+#     test_df.to_csv("test.csv",encoding="utf-8")
+
+# df1 = pd.read_csv("test.csv")
+# df1 = pd.DataFrame()
 satis = st.radio(
     "この会議の満足度は？",
     ('1', '2', '3', '4', '5')
@@ -501,9 +617,9 @@ type = st.selectbox(
 
 
 if st.button('確定'):
-    df2 = pd.DataFrame({"満足度" : [satis],"予定時間" : [settime],"会議の種類" : [type]},)
+    df2 = pd.DataFrame({"satisfaction" : [satis],"expected time" : [settime],"meeting sort" : [type]},)
     dfmain = pd.concat([df1,df2])
-    dfmain.to_csv(("https://share.streamlit.io/hiroyoungkun/streamlitapps/main/test.csv"),index=False)
+    dfmain.to_csv(("test.csv"),encoding='utf-8',index=False)
 else:
     st.write('確定ボタンを押してください')
 
@@ -524,12 +640,12 @@ else:
     if debug:
         # mi.make_dataframe()
         st.write("debug")
-        mi.vis_posinega()
+        mi.vis_talk_speed()
     else:
         # mi.make_dataframe()
         add_selectbox = st.sidebar.selectbox(
         "見たいグラフを選んでね",
-        ("ダイジェスト", "発言量", "ポジネガ発言", "会話の活性度","問いかけの種類と回数","yeeeees")
+        ("ダイジェスト", "発言量", "ポジネガ発言", "会話の活性度","問いかけの種類と回数","会話遷移図", "会話速度")
         )
         
         if add_selectbox == "ダイジェスト":
@@ -544,3 +660,9 @@ else:
             mi.vis_silence()
         if add_selectbox == "問いかけの種類と回数":
             mi.Q_category()
+        if add_selectbox == "会話遷移図":
+            settime_diagram = st.slider("経過時間（10分単位）",0,19)
+            mi.State_transition_diagram(settime_diagram)
+        if add_selectbox == "会話速度":
+            mi.vis_talk_speed()
+        
