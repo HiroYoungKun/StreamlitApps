@@ -599,29 +599,29 @@ df1 = pd.read_csv("test.csv", encoding = "utf-8")
 
 # df1 = pd.read_csv("test.csv")
 # df1 = pd.DataFrame()
-satis = st.radio(
-    "この会議の満足度は？",
-    ('1', '2', '3', '4', '5')
-    )
+# satis = st.radio(
+#     "この会議の満足度は？",
+#     ('1', '2', '3', '4', '5')
+#     )
 
 
-max_value = 200
-min_value = 0
+# max_value = 200
+# min_value = 0
 
-settime = st.slider("予定していた設定時間（分）",min_value,max_value,30,10)
+# settime = st.slider("予定していた設定時間（分）",min_value,max_value,30,10)
 
-type = st.selectbox(
-    "会議の種類を選択してください",
-    ('情報共有や周知のための話し合い', 'アイデアを創造したり問題解決をするための話し合い', '役割や利害を調整するための話し合い', '意思決定を行うための話し合い', '勉強会や研修など教育・指導のための話し合い')
-)
+# type = st.selectbox(
+#     "会議の種類を選択してください",
+#     ('情報共有や周知のための話し合い', 'アイデアを創造したり問題解決をするための話し合い', '役割や利害を調整するための話し合い', '意思決定を行うための話し合い', '勉強会や研修など教育・指導のための話し合い')
+# )
 
 
-if st.button('確定'):
-    df2 = pd.DataFrame({"satisfaction" : [satis],"expected time" : [settime],"meeting sort" : [type]},)
-    dfmain = pd.concat([df1,df2])
-    dfmain.to_csv(("test.csv"),encoding='utf-8',index=False)
-else:
-    st.write('確定ボタンを押してください')
+# if st.button('確定'):
+#     df2 = pd.DataFrame({"satisfaction" : [satis],"expected time" : [settime],"meeting sort" : [type]},)
+#     dfmain = pd.concat([df1,df2])
+#     dfmain.to_csv(("test.csv"),encoding='utf-8',index=False)
+# else:
+#     st.write('確定ボタンを押してください')
 
 # Streamlitによるファイルアップロード機能
 uploaded_file=st.file_uploader("↓Teamsのトランスクリプトファイル（docx）をアップロード↓", type=['docx'])
