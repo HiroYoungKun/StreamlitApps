@@ -660,9 +660,9 @@ else:
             mi.vis_silence()
         if add_selectbox == "問いかけの種類と回数":
             mi.Q_category()
-        if add_selectbox == "会話遷移図":
-            settime_diagram = st.slider("経過時間（10分単位）",0,19)
-            mi.State_transition_diagram(settime_diagram)
+#         if add_selectbox == "会話遷移図":
+#             settime_diagram = st.slider("経過時間（10分単位）",0,19)
+#             mi.State_transition_diagram(settime_diagram)
         if add_selectbox == "会話速度":
             mi.vis_talk_speed()
         
